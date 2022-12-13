@@ -9,17 +9,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Util {
-    private final String SQL_URL = "jdbc:mysql://localhost:3306/new_schema";
-    private final String SQL_USERNAME = "root";
-    private final String SQL_PASSWORD = "root";
 
-    public Connection getConnectionWithServer() {
-        try {
-            return DriverManager.getConnection(SQL_URL, SQL_USERNAME, SQL_PASSWORD);
-        } catch(SQLException e) {
-            System.out.println("Problem with connection to DB");
-        }
-        return null;
+    private static Util util = new Util();
+
+    private Util(){}
+    public static Util getInstance() {
+        return util;
     }
 
     public Session getHibernateSession() {

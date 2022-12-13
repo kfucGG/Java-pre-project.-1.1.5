@@ -22,14 +22,14 @@ import java.util.stream.Collectors;
 
 public class UserDaoHibernateImpl implements UserDao {
 
-    private static final Util util = new Util();
+
     public UserDaoHibernateImpl() {
 
     }
 
     @Override
     public void createUsersTable() {
-        Session session = util.getHibernateSession();
+        Session session = Util.getInstance().getHibernateSession();
         session.beginTransaction();
         try {
             session.createSQLQuery("CREATE TABLE user(\n" +
@@ -46,7 +46,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void dropUsersTable() {
-        Session session = util.getHibernateSession();
+        Session session = Util.getInstance().getHibernateSession();
         session.beginTransaction();
         session.createSQLQuery("DROP TABLE IF EXISTS user").executeUpdate();
         session.getTransaction().commit();
@@ -54,7 +54,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        Session session = util.getHibernateSession();
+        Session session = Util.getInstance().getHibernateSession();
         session.beginTransaction();
         User user = new User(name, lastName, age);
         session.save(user);
@@ -63,7 +63,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void removeUserById(long id) {
-        Session session = util.getHibernateSession();
+        Session session = Util.getInstance().getHibernateSession();
         session.beginTransaction();
 
         session.remove(session.get(User.class, id));
@@ -72,7 +72,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        Session session = util.getHibernateSession();
+        Session session = Util.getInstance().getHibernateSession();
         session.beginTransaction();
         List<User> allUsers = allUsers = session.createSQLQuery("SELECT * FROM user")
                 .addScalar("id", new LongType())
@@ -88,7 +88,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
-        Session session = util.getHibernateSession();
+        Session session = Util.getInstance().getHibernateSession();
         session.beginTransaction();
         session.createSQLQuery("TRUNCATE user").executeUpdate();
         session.getTransaction().commit();
