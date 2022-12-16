@@ -2,7 +2,9 @@ package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -29,68 +31,93 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        Session session = Util.getInstance().getHibernateSession();
-        session.beginTransaction();
+        Session session = null;
         try {
-            session.createSQLQuery("CREATE TABLE user(\n" +
-                    "    id SERIAL PRIMARY KEY,\n" +
-                    "    name varchar(30),\n" +
-                    "    lastName varchar(30),\n" +
-                    "    age int\n" +
-                    ");").executeUpdate();
-        } catch(PersistenceException ignore) {
+            session = Util.getInstance().getHibernateSession();
+            session.beginTransaction();
+            try {
+                session.createSQLQuery("CREATE TABLE user(\n" +
+                        "    id SERIAL PRIMARY KEY,\n" +
+                        "    name varchar(30),\n" +
+                        "    lastName varchar(30),\n" +
+                        "    age int\n" +
+                        ");").executeUpdate();
+                session.getTransaction().commit();
+            } catch (PersistenceException ignore) {
 
+            }
+        } catch(Exception e) {
+            session.getTransaction().rollback();
         }
-        session.getTransaction().commit();
+
     }
 
     @Override
     public void dropUsersTable() {
-        Session session = Util.getInstance().getHibernateSession();
-        session.beginTransaction();
-        session.createSQLQuery("DROP TABLE IF EXISTS user").executeUpdate();
-        session.getTransaction().commit();
+        Session session = null;
+        try {
+            session = Util.getInstance().getHibernateSession();
+            session.beginTransaction();
+            session.createSQLQuery("DROP TABLE IF EXISTS user").executeUpdate();
+            session.getTransaction().commit();
+        } catch(Exception e) {
+            session.getTransaction().rollback();
+        }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        Session session = Util.getInstance().getHibernateSession();
-        session.beginTransaction();
-        User user = new User(name, lastName, age);
-        session.save(user);
-        session.getTransaction().commit();
+        Session session = null;
+        try {
+            session = Util.getInstance().getHibernateSession();
+            session.beginTransaction();
+            session.save(new User(name, lastName, age));
+            session.getTransaction().commit();
+        } catch(Exception e) {
+            session.getTransaction().rollback();
+        }
     }
 
     @Override
     public void removeUserById(long id) {
-        Session session = Util.getInstance().getHibernateSession();
-        session.beginTransaction();
-
-        session.remove(session.get(User.class, id));
-        session.getTransaction().commit();
+        Session session = null;
+        try {
+            session = Util.getInstance().getHibernateSession();
+            session.beginTransaction();
+            session.remove(session.get(User.class, id));
+            session.getTransaction().commit();
+        } catch(Exception e) {
+            session.getTransaction().rollback();
+        }
     }
 
     @Override
     public List<User> getAllUsers() {
-        Session session = Util.getInstance().getHibernateSession();
-        session.beginTransaction();
-        List<User> allUsers = allUsers = session.createSQLQuery("SELECT * FROM user")
-                .addScalar("id", new LongType())
-                .addScalar("name", new StringType())
-                .addScalar("lastName", new StringType())
-                .addScalar("age", new ByteType())
-                .setResultTransformer(Transformers.aliasToBean(User.class))
-                .getResultList();
-        session.getTransaction().commit();
+        List<User> allUsers = new ArrayList<>();
+        Session session = null;
+        try {
+            session = Util.getInstance().getHibernateSession();
+            session.getTransaction().begin();
+            allUsers = session.createQuery("FROM User", User.class).list();
+            session.getTransaction().commit();
+        } catch(HibernateException e) {
+            session.getTransaction().rollback();
+        }
 
         return allUsers;
     }
 
     @Override
     public void cleanUsersTable() {
-        Session session = Util.getInstance().getHibernateSession();
-        session.beginTransaction();
-        session.createSQLQuery("TRUNCATE user").executeUpdate();
-        session.getTransaction().commit();
+        Session session = null;
+        try {
+            session = Util.getInstance().getHibernateSession();
+            session.getTransaction().begin();
+            session.createQuery("delete from User").executeUpdate();
+            session.getTransaction().commit();
+        } catch(Exception e) {
+            session.getTransaction().rollback();
+            e.printStackTrace();
+        }
     }
 }
